@@ -27,7 +27,6 @@ async def handle_client(reader, writer):
     addr = writer.get_extra_info('peername')
     print(f"Nouvelle connexion de {addr}")
 
-    # Generate a random color for the client
     color = random.choice(COLORS)
 
     try:
