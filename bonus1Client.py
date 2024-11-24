@@ -8,6 +8,8 @@ async def send_message(writer):
         if message.strip():
             writer.write(message.encode())
             await writer.drain()
+            print(f"\rVous avez dit : {message}\n", end="")
+            print("\rVous : ", end="", flush=True)
 
 async def receive_message(reader, stop_event):
     while True:
@@ -16,16 +18,7 @@ async def receive_message(reader, stop_event):
             print("\nConnexion fermée par le serveur.")
             stop_event.set()
             break
-
-        try:
-            pseudo, color, timestamp, msg = data.decode().strip().split("|")
-            timestamp = datetime.fromtimestamp(float(timestamp)).strftime("[%H:%M]")
-            color_code = color.lstrip('#')
-            print(f"\r{timestamp} \033[38;5;{int(color_code, 16)}m{pseudo}\033[0m a dit : {msg}\n", end="")
-
-        except ValueError:
-            print("Erreur de format dans le message reçu.")
-        
+        print(f"\r{data.decode()}\n", end="")
         print("\rVous : ", end="", flush=True)
 
 async def main():
@@ -56,7 +49,7 @@ async def main():
         receive_task.cancel()
 
         await asyncio.gather(send_task, receive_task, return_exceptions=True)
-        
+
     except ConnectionRefusedError:
         print(f"Impossible de se connecter au serveur {server_host}:{server_port}")
     except asyncio.CancelledError:

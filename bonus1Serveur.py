@@ -3,22 +3,15 @@ import random
 from datetime import datetime
 
 CLIENTS = {}
-
-def generate_color():
-    return "#{:02x}{:02x}{:02x}".format(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+COLORS = ["\033[91m", "\033[92m", "\033[93m", "\033[94m", "\033[95m", "\033[96m"]
 
 async def broadcast_message(sender_addr, message, include_sender=False):
     for addr, client in CLIENTS.items():
         if not include_sender and addr == sender_addr:
             continue
         writer = client["w"]
-        pseudo = client["pseudo"]
-        color = client["color"]
-        timestamp = client["timestamp"]
-
-        final_message = f"{pseudo}|{color}|{timestamp}|{message}"
         try:
-            writer.write(final_message.encode())
+            writer.write(message.encode())
             await writer.drain()
         except Exception as e:
             print(f"Erreur lors de l'envoi à {addr}: {e}")
@@ -26,6 +19,8 @@ async def broadcast_message(sender_addr, message, include_sender=False):
 async def handle_client(reader, writer):
     addr = writer.get_extra_info('peername')
     print(f"Nouvelle connexion de {addr}")
+
+    color = random.choice(COLORS)
 
     try:
         data = await reader.read(1024)
@@ -46,16 +41,13 @@ async def handle_client(reader, writer):
             await writer.wait_closed()
             return
 
-        color = generate_color()
-
         CLIENTS[addr] = {
             "r": reader,
             "w": writer,
             "pseudo": pseudo,
-            "color": color,
-            "timestamp": datetime.now().timestamp()
+            "color": color
         }
-        print(f"{addr} s'est connecté avec le pseudo '{pseudo}' et la couleur '{color}'.")
+        print(f"{addr} s'est connecté avec le pseudo '{pseudo}'.")
 
         join_announcement = f"Annonce : {pseudo} a rejoint la chatroom.\n"
         await broadcast_message(sender_addr=None, message=join_announcement)
@@ -68,10 +60,8 @@ async def handle_client(reader, writer):
             msg = data.decode().strip()
             print(f"Message de {pseudo} ({addr}): {msg}")
 
-            timestamp = datetime.now().timestamp()
-            CLIENTS[addr]["timestamp"] = timestamp
-
-            redistrib_message = f"{pseudo} a dit : {msg}\n"
+            timestamp = datetime.now().strftime("[%H:%M]")
+            redistrib_message = f"{timestamp} {color}{pseudo}\033[0m a dit : {msg}\n"
             await broadcast_message(sender_addr=addr, message=redistrib_message)
 
     except asyncio.CancelledError:
