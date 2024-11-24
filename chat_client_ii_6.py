@@ -13,8 +13,7 @@ async def receive_message(reader):
         data = await reader.read(1024)
         if not data:
             print("\nConnexion fermée par le serveur.")
-            asyncio.get_event_loop().stop()
-            break
+            raise SystemExit("La connexion au serveur a été perdue.")
         print(f"\r{data.decode()}\n", end="")
         print("\rVous : ", end="", flush=True)
 
@@ -56,3 +55,5 @@ if __name__ == '__main__':
         asyncio.run(main())
     except KeyboardInterrupt:
         print("\nFermeture de la connexion.")
+    except SystemExit:
+        print("\nL'application a été fermée en raison de la déconnexion du serveur.")
