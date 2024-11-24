@@ -3,19 +3,23 @@ from aioconsole import ainput
 
 async def send_message(writer):
     while True:
-        message = await ainput("Vous : ")
-        if message.strip():
-            writer.write(message.encode())
-            await writer.drain()
+        try:
+            message = await ainput("\rVous : ")
+            if message.strip():
+                writer.write(message.encode())
+                await writer.drain()
+        except asyncio.CancelledError:
+            break
 
 async def receive_message(reader):
     while True:
         try:
             data = await reader.read(1024)
             if not data:
-                print("Connexion fermée par le serveur.")
+                print("\nConnexion fermée par le serveur.")
                 break
-            print(f"\n{data.decode()}")
+            print(f"\r{data.decode()}\n", end="")
+            print("\rVous : ", end="", flush=True)
         except asyncio.CancelledError:
             break
 
@@ -28,7 +32,7 @@ async def main():
 
     pseudo = input("Entrez votre pseudo : ").strip()
     if not pseudo:
-        print("Il vous faut un pseudo'.")
+        print("Il vous faut un pseudo.")
         pseudo = "Anonyme"
     writer.write(f"Hello|{pseudo}".encode())
     await writer.drain()

@@ -173,11 +173,123 @@ Fermeture de la connexion
 
 ## 3. Client asynchrone
 
-🌞 chat_client_ii_3.py
+🌞 chat_client_ii_3.py*
+
+```bash
+[vince@ClientTP6 TP-6-DEV]$ python chat_client_ii_3.py
+Connecté au serveur 10.2.2.2:8888
+Vous : salut !
+Serveur : Message reçu : salut !
+Vous : ^C
+Arrêt de la saisie utilisateur.
+
+Arrêt de la réception des messages.
+
+Client arrêté par l'utilisateur.
+Fermeture de la connexion.
+
+Arrêt du client (CTRL + C).
+```
+
+```bash
+[vince@Client2TP6 TP-6-DEV]$ python3 chat_client_ii_3.py
+Connecté au serveur 10.2.2.2:8888
+Vous : salut
+Serveur : Message reçu : salut
+Vous : ^C
+Arrêt de la saisie utilisateur.
+
+Arrêt de la réception des messages.
+
+Client arrêté par l'utilisateur.
+Fermeture de la connexion.
+
+Arrêt du client (CTRL + C).
+```
+
 
 🌞 chat_server_ii_3.py
+
+```bash
+[vince@ServeurTP6 TP-6-DEV]$ python chat_server_ii_3.py
+Serving on ('10.2.2.2', 8888)
+Nouvelle connexion de ('10.2.2.223', 48628)
+Nouvelle connexion de ('10.2.2.222', 40486)
+Message received from 10.2.2.222:40486 : salut
+Message received from 10.2.2.223:48628 : salut
+Connexion terminée avec ('10.2.2.223', 48628)
+Connexion fermée avec ('10.2.2.223', 48628)
+Connexion terminée avec ('10.2.2.222', 40486)
+Connexion fermée avec ('10.2.2.222', 40486)
+^C
+Serveur arrêté manuellement.
+```
 
 
 
 ## 4. Un chat fonctionnel
 
+🌞 chat_server_ii_4.py
+
+```bash
+[vince@ServeurTP6 TP-6-DEV]$ python chat_server_ii_4.py
+Serving on ('10.2.2.2', 8888)
+Nouvelle connexion de ('10.2.2.223', 32984)
+Nouvelle connexion de ('10.2.2.222', 53632)
+Message received from 10.2.2.222:53632 : salut
+Message received from 10.2.2.223:32984 : coucou !
+Message received from 10.2.2.223:32984 : tu va sn=bien ?
+Message received from 10.2.2.222:53632 : ouui super !
+^CConnexion annulée avec ('10.2.2.222', 53632)
+Connexion annulée avec ('10.2.2.223', 32984)
+Connexion fermée avec ('10.2.2.222', 53632)
+Connexion fermée avec ('10.2.2.223', 32984)
+
+Serveur arrêté manuellement.
+```
+
+```bash
+[vince@ClientTP6 TP-6-DEV]$ python chat_client_ii_3.py
+Connecté au serveur 10.2.2.2:8888
+Vous : salut
+Serveur : 10.2.2.223:32984 a dit : coucou !
+Serveur : 10.2.2.223:32984 a dit : tu va sn=bien ?
+Vous : ouui super !
+Vous :
+Connexion avec le serveur fermée.
+^C
+Arrêt de la saisie utilisateur.
+
+Client arrêté par l'utilisateur.
+Fermeture de la connexion.
+
+Arrêt du client (CTRL + C).
+```
+
+```bash
+[vince@Client2TP6 TP-6-DEV]$ python3 chat_client_ii_3.py
+Connecté au serveur 10.2.2.2:8888
+Serveur : 10.2.2.222:53632 a dit : salut
+Vous : coucou !
+Vous : tu va sn=bien ?
+Serveur : 10.2.2.222:53632 a dit : ouui super !
+Vous :
+Connexion avec le serveur fermée.
+^C
+Arrêt de la saisie utilisateur.
+
+Client arrêté par l'utilisateur.
+Fermeture de la connexion.
+
+Arrêt du client (CTRL + C).
+```
+
+## 5. Gérer des pseudos
+
+🌞 chat_client_ii_5.py
+
+```bash
+
+🌞 chat_server_ii_5.py
+
+```bash
