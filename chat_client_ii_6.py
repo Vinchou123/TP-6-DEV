@@ -18,7 +18,8 @@ async def receive_messages(reader):
             if not data:
                 print("Serveur déconnecté. Fermeture du client.")
                 break
-            print(f"\r{data.decode().strip()}\nVous : ", end="", flush=True)
+            print(f"\r{data.decode()}\n", end="")
+            print("\rVous : ", end="", flush=True)
     except asyncio.CancelledError:
         print("\nArrêt de la réception des messages.")
 
