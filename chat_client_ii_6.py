@@ -8,8 +8,8 @@ async def send_messages(writer):
             if message.strip():
                 writer.write(message.encode())
                 await writer.drain()
-    except asyncio.CancelledError:
-        print("\nArrêt de la saisie utilisateur.")
+    except (asyncio.CancelledError, ConnectionResetError) as e:
+        print("\nErreur de connexion ou arrêt de la saisie utilisateur :", e)
 
 async def receive_messages(reader):
     try:
