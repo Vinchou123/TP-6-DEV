@@ -8,7 +8,7 @@ async def broadcast_message(message, exclude_addr=None):
     Diffuse un message à tous les clients, sauf éventuellement à un client spécifique.
     """
     for addr, client in CLIENTS.items():
-        if addr == exclude_addr or client["connected"] is False:
+        if addr == exclude_addr or not client["connected"]:
             continue
         try:
             client["writer"].write(message.encode())
