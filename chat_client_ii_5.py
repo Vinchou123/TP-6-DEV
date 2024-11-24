@@ -44,7 +44,7 @@ async def main():
         print(f"Impossible de se connecter au serveur {server_host}:{server_port}")
 
     finally:
-        print("Client arrêté manuellement.")
+        print("\nClient arrêté manuellement.")
         try:
             writer.close()
             await writer.wait_closed()
