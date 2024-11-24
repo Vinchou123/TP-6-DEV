@@ -8,12 +8,13 @@ async def send_message(writer):
             writer.write(message.encode())
             await writer.drain()
 
-async def receive_message(reader):
+async def receive_message(reader, stop_event):
     while True:
         data = await reader.read(1024)
         if not data:
             print("\nConnexion fermée par le serveur.")
-            raise SystemExit("La connexion au serveur a été perdue.")
+            stop_event.set()
+            break
         print(f"\r{data.decode()}\n", end="")
         print("\rVous : ", end="", flush=True)
 
@@ -34,10 +35,18 @@ async def main():
 
         print(f"Vous êtes connecté en tant que '{pseudo}'. Tapez votre message !")
 
-        send_task = asyncio.create_task(send_message(writer))
-        receive_task = asyncio.create_task(receive_message(reader))
+        stop_event = asyncio.Event()
 
-        await asyncio.gather(send_task, receive_task)
+        send_task = asyncio.create_task(send_message(writer))
+        receive_task = asyncio.create_task(receive_message(reader, stop_event))
+
+        await stop_event.wait()
+
+        send_task.cancel()
+        receive_task.cancel()
+
+        await asyncio.gather(send_task, receive_task, return_exceptions=True)
+        
     except ConnectionRefusedError:
         print(f"Impossible de se connecter au serveur {server_host}:{server_port}")
     except asyncio.CancelledError:
@@ -55,5 +64,3 @@ if __name__ == '__main__':
         asyncio.run(main())
     except KeyboardInterrupt:
         print("\nFermeture de la connexion.")
-    except SystemExit:
-        print("\nL'application a été fermée en raison de la déconnexion du serveur.")
