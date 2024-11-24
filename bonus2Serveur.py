@@ -1,64 +1,79 @@
 import asyncio
+from datetime import datetime
 
 CLIENTS = {}
 
-async def handle_client(reader, writer):
-    addr = writer.get_extra_info('peername')
-    print(f"Nouvelle connexion de {addr[0]}:{addr[1]}")
 
-    pseudo = (await reader.readline()).decode().strip()
-    
-    if pseudo in CLIENTS:
-        CLIENTS[pseudo]["connected"] = True
-        CLIENTS[pseudo]["writer"] = writer 
-        print(f"{addr[0]} s'est reconnecté avec le pseudo '{pseudo}'.")
-        broadcast(f"Annonce : {pseudo} est de retour !", pseudo)
+async def broadcast_message(message, exclude_addr=None):
+    for addr, client in CLIENTS.items():
+        if addr == exclude_addr or not client["connected"]:
+            continue
+        try:
+            client["writer"].write(message.encode())
+            await client["writer"].drain()
+        except Exception as e:
+            print(f"Erreur lors de l'envoi à {addr}: {e}")
+
+
+async def handle_client(reader, writer):
+    addr = writer.get_extra_info('peername')[0]
+    print(f"Nouvelle connexion de {addr}")
+
+    if addr in CLIENTS and CLIENTS[addr]["connected"] is False:
+        pseudo = CLIENTS[addr]["pseudo"]
+        CLIENTS[addr]["connected"] = True
+        CLIENTS[addr]["reader"] = reader
+        CLIENTS[addr]["writer"] = writer
+
+        writer.write(f"Welcome back, {pseudo}!\n".encode())
+        await writer.drain()
+        print(f"{addr} s'est reconnecté avec le pseudo '{pseudo}'.")
+        await broadcast_message(f"Annonce : {pseudo} est de retour !\n")
     else:
-        CLIENTS[pseudo] = {
-            "addr": addr,
+        writer.write(b"Entrez votre pseudo : ")
+        pseudo = (await reader.read(1024)).decode().strip()
+        if not pseudo:
+            writer.close()
+            await writer.wait_closed()
+            return
+
+        CLIENTS[addr] = {
+            "pseudo": pseudo,
+            "reader": reader,
             "writer": writer,
-            "connected": True,
+            "connected": True
         }
-        print(f"{addr[0]} s'est connecté avec le pseudo '{pseudo}'.")
-        broadcast(f"Annonce : {pseudo} a rejoint la chatroom.", pseudo)
+        print(f"{addr} s'est connecté avec le pseudo '{pseudo}'.")
+        await broadcast_message(f"Annonce : {pseudo} a rejoint la chatroom.\n")
 
     try:
         while True:
-            data = await reader.readline()
+            data = await reader.read(1024)
             if not data:
                 break
             message = data.decode().strip()
-            print(f"Message de {pseudo} ({addr[0]}): {message}")
-            broadcast(f"[{addr[0]}] {pseudo} a dit : {message}", pseudo)
-    except asyncio.CancelledError:
-        pass
+            timestamp = datetime.now().strftime("[%H:%M]")
+            full_message = f"{timestamp} {pseudo} a dit : {message}\n"
+            await broadcast_message(full_message, exclude_addr=addr)
+    except Exception as e:
+        print(f"Erreur avec {addr}: {e}")
     finally:
-        print(f"Déconnexion de {addr[0]} ({pseudo})")
-        CLIENTS[pseudo]["connected"] = False
-        broadcast(f"Annonce : {pseudo} a quitté la chatroom.", pseudo)
+        if addr in CLIENTS:
+            CLIENTS[addr]["connected"] = False
+            print(f"Déconnexion de {addr} ({pseudo})")
+            await broadcast_message(f"Annonce : {pseudo} a quitté la chatroom.\n")
         writer.close()
         await writer.wait_closed()
 
-def broadcast(message, sender_pseudo=None):
-    """
-    Envoie un message à tous les clients connectés sauf à l'expéditeur (si défini).
-    """
-    for pseudo, info in CLIENTS.items():
-        if info["connected"] and pseudo != sender_pseudo:
-            try:
-                info["writer"].write(f"{message}\n".encode())
-            except Exception as e:
-                print(f"Erreur lors de l'envoi à {pseudo}: {e}")
 
 async def main():
-    server_ip = "10.2.2.2"
-    server_port = 8888
-    server = await asyncio.start_server(handle_client, server_ip, server_port)
+    server = await asyncio.start_server(handle_client, "10.2.2.2", 8888)
     addr = server.sockets[0].getsockname()
     print(f"Serving on {addr}")
 
     async with server:
         await server.serve_forever()
+
 
 if __name__ == "__main__":
     try:
