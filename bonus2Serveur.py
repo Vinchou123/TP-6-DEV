@@ -17,7 +17,7 @@ async def broadcast_message(sender_addr, message, include_sender=False):
             print(f"Erreur lors de l'envoi à {addr}: {e}")
 
 async def handle_client(reader, writer):
-    addr = writer.get_extra_info('peername')
+    addr = writer.get_extra_info('peername')[0]
     print(f"Nouvelle connexion de {addr}")
 
     color = random.choice(COLORS)
