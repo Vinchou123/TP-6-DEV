@@ -289,6 +289,24 @@ Arrêt du client (CTRL + C).
 🌞 chat_client_ii_5.py
 
 ```bash
+[vince@ClientTP6 TP-6-DEV]$ python chat_client_ii_5.py
+Connexion au serveur 10.2.2.2:8888...
+Entrez votre pseudo : Jin
+Vous êtes connecté en tant que 'Jin'. Tapez vos messages !
+Jin a rejoint la chatroom.
+
+Vous : salut !
+Vince : Salut !!
+
+Vince : Comment tu vas ?
+
+Vous : Bien et toi ?
+Vous : ^CArrêt de la saisie utilisateur.
+Arrêt de la réception des messages.
+Fermeture de la connexion.
+
+Client arrêté par l'utilisateur.
+```
 
 
 🌞 chat_server_ii_5.py
