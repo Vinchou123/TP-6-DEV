@@ -146,3 +146,32 @@ Page téléchargée : https://www.twitter.com -> /tmp/web_pages/web_www.twitter.
 Page téléchargée : https://www.ynov.com -> /tmp/web_pages/web_www.ynov.com.html
 Temps d'exécution asynchrone: 1.87 secondes
 ```
+
+## II. Chat room
+
+## 1. Intro
+
+## 2. Première version
+
+🌞 chat_server_ii_2.py
+
+```bash
+[vince@ServeurTP4 tp-dev-3]$ python chat_server_ii_2.py
+Serving on ('10.2.2.2', 8888)
+Message du client (10.2.2.222:47148): Hello
+Réponse envoyée à 10.2.2.222:47148
+```
+
+🌞 chat_client_ii_2.py
+
+```bash
+[vince@ClientTP4 tp-dev-3]$ python chat_client_ii_2.py
+Connecté au serveur ('10.2.2.2', 8888)
+Réponse du serveur: Hello 10.2.2.222:47148
+Fermeture de la connexion
+```
+
+## 3. Client asynchrone
+
+## 4. Un chat fonctionnel
+
