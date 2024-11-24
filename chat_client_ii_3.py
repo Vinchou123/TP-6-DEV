@@ -9,7 +9,7 @@ async def async_input(writer):
                 writer.write(user_input.encode())
                 await writer.drain()
     except asyncio.CancelledError:
-        print("Arrêt de la saisie utilisateur.")
+        print("\nArrêt de la saisie utilisateur.")
 
 async def async_receive(reader):
     try:
@@ -18,9 +18,10 @@ async def async_receive(reader):
             if not data:
                 print("\nConnexion avec le serveur fermée.")
                 break
-            print(f"\nServeur : {data.decode()}", end="\n")
+            print(f"\rServeur : {data.decode()}\n", end="")
+            print("\rVous : ", end="", flush=True)
     except asyncio.CancelledError:
-        print("Arrêt de la réception des messages.")
+        print("\nArrêt de la réception des messages.")
 
 async def main():
     host = "10.2.2.2"
