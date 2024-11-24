@@ -1,27 +1,20 @@
 import asyncio
 import random
-import hashlib
 from datetime import datetime
 
 CLIENTS = {}
 COLORS = ["\033[91m", "\033[92m", "\033[93m", "\033[94m", "\033[95m", "\033[96m"]
 
-def generate_unique_id(ip, port, pseudo):
-    return hashlib.sha256(f"{ip}:{port}:{pseudo}".encode()).hexdigest()
-
-async def broadcast_message(sender_id, message, include_sender=False):
-    for user_id, client in list(CLIENTS.items()):
-        if not include_sender and user_id == sender_id:
-            continue
-        if not client["connected"]:
+async def broadcast_message(sender_addr, message, include_sender=False):
+    for addr, client in CLIENTS.items():
+        if not include_sender and addr == sender_addr:
             continue
         writer = client["w"]
         try:
             writer.write(message.encode())
             await writer.drain()
         except Exception as e:
-            print(f"Erreur lors de l'envoi à {user_id}: {e}")
-            client["connected"] = False
+            print(f"Erreur lors de l'envoi à {addr}: {e}")
 
 async def handle_client(reader, writer):
     addr = writer.get_extra_info('peername')
@@ -29,50 +22,44 @@ async def handle_client(reader, writer):
 
     color = random.choice(COLORS)
 
+    if addr in CLIENTS:
+        pseudo = CLIENTS[addr]["pseudo"]
+        writer.write(f"Welcome back, {pseudo}!\n".encode())
+        await writer.drain()
+        print(f"{addr} se reconnecte avec le pseudo '{pseudo}'.")
+    else:
+        pseudo = None
+
     try:
-        data = await reader.read(1024)
-        if not data:
-            print(f"Connexion annulée par {addr} (aucun pseudo envoyé).")
-            writer.close()
-            await writer.wait_closed()
-            return
+        if not pseudo:
+            data = await reader.read(1024)
+            if not data:
+                print(f"Connexion annulée par {addr} (aucun pseudo envoyé).")
+                writer.close()
+                await writer.wait_closed()
+                return
 
-        message = data.decode().strip()
-        if message.startswith("Hello|"):
-            pseudo = message.split("|", 1)[1].strip()
-            if not pseudo:
-                pseudo = "Anonyme"
-        else:
-            print(f"Format de message inattendu de {addr}: {message}")
-            writer.close()
-            await writer.wait_closed()
-            return
-
-        user_id = generate_unique_id(addr[0], addr[1], pseudo)
-
-        if user_id in CLIENTS:
-            if CLIENTS[user_id]["connected"]:
-                print(f"{addr} s'est reconnecté avec le pseudo '{pseudo}'.")
-                writer.write(f"Welcome back {pseudo}!\n".encode())
-                await writer.drain()
-                reconnect_announcement = f"Annonce : {pseudo} est de retour !\n"
-                await broadcast_message(sender_id=None, message=reconnect_announcement)
+            message = data.decode().strip()
+            if message.startswith("Hello|"):
+                pseudo = message.split("|", 1)[1].strip()
+                if not pseudo:
+                    pseudo = "Anonyme"
             else:
-                print(f"{addr} s'est connecté avec le pseudo '{pseudo}'.")
-                join_announcement = f"Annonce : {pseudo} a rejoint la chatroom.\n"
-                await broadcast_message(sender_id=None, message=join_announcement)
-        else:
-            print(f"{addr} s'est connecté avec le pseudo '{pseudo}'.")
-            join_announcement = f"Annonce : {pseudo} a rejoint la chatroom.\n"
-            await broadcast_message(sender_id=None, message=join_announcement)
+                print(f"Format de message inattendu de {addr}: {message}")
+                writer.close()
+                await writer.wait_closed()
+                return
 
-        CLIENTS[user_id] = {
-            "r": reader,
-            "w": writer,
-            "pseudo": pseudo,
-            "color": color,
-            "connected": True
-        }
+            CLIENTS[addr] = {
+                "r": reader,
+                "w": writer,
+                "pseudo": pseudo,
+                "color": color
+            }
+            print(f"{addr} s'est connecté avec le pseudo '{pseudo}'.")
+
+            join_announcement = f"Annonce : {pseudo} a rejoint la chatroom.\n"
+            await broadcast_message(sender_addr=None, message=join_announcement)
 
         while True:
             data = await reader.read(1024)
@@ -84,19 +71,19 @@ async def handle_client(reader, writer):
 
             timestamp = datetime.now().strftime("[%H:%M]")
             redistrib_message = f"{timestamp} {color}{pseudo}\033[0m a dit : {msg}\n"
-            await broadcast_message(sender_id=user_id, message=redistrib_message)
+            await broadcast_message(sender_addr=addr, message=redistrib_message)
 
     except asyncio.CancelledError:
         print(f"Connexion annulée avec {addr}")
     except Exception as e:
         print(f"Erreur avec {addr}: {e}")
     finally:
-        pseudo = CLIENTS.get(user_id, {}).get("pseudo", "Inconnu")
-        CLIENTS[user_id]["connected"] = False
+        pseudo = CLIENTS.get(addr, {}).get("pseudo", "Inconnu")
+        del CLIENTS[addr]
         print(f"Déconnexion de {addr} ({pseudo})")
 
         leave_announcement = f"Annonce : {pseudo} a quitté la chatroom.\n"
-        await broadcast_message(sender_id=None, message=leave_announcement)
+        await broadcast_message(sender_addr=None, message=leave_announcement)
 
         writer.close()
         await writer.wait_closed()
