@@ -6,6 +6,9 @@ async def send_messages(writer):
         while True:
             message = await aioconsole.ainput("Vous : ")
             if message.strip():
+                if writer.is_closing():
+                    print("\nConnexion déjà fermée, impossible d'envoyer le message.")
+                    break
                 writer.write(message.encode())
                 await writer.drain()
     except (asyncio.CancelledError, ConnectionResetError) as e:
@@ -60,8 +63,10 @@ async def main():
         print("\nArrêt de la réception des messages.")
 
     print("Client arrêté manuellement.")
-    writer.close()
-    await writer.wait_closed()
+    
+    if not writer.is_closing():
+        writer.close()
+        await writer.wait_closed()
 
 if __name__ == '__main__':
     try:
