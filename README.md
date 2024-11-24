@@ -296,17 +296,18 @@ Arrêt du client (CTRL + C).
 ```bash
 [vince@ServeurTP6 TP-6-DEV]$ python chat_server_ii_5.py
 Serving on ('10.2.2.2', 8888)
-Connexion de ('10.2.2.222', 39700)
-('10.2.2.222', 39700) est connecté avec le pseudo 'Vince'.
-Connexion de ('10.2.2.223', 41956)
-('10.2.2.223', 41956) est connecté avec le pseudo 'Jin'.
-Message de Jin (('10.2.2.223', 41956)): SAlutr
-Message de Vince (('10.2.2.222', 39700)): Comment tu vas ?
-Message de Jin (('10.2.2.223', 41956)): Bien et toi ?
-Déconnexion de ('10.2.2.223', 41956) (Jin)
-Connexion fermée avec ('10.2.2.223', 41956) (Jin)
-Déconnexion de ('10.2.2.222', 39700) (Vince)
-Connexion fermée avec ('10.2.2.222', 39700) (Vince)
+Connexion de ('10.2.2.223', 51056)
+Connexion de ('10.2.2.222', 38672)
+('10.2.2.223', 51056) est connecté avec le pseudo 'Vince'.
+('10.2.2.222', 38672) est connecté avec le pseudo 'Jin'.
+Message de Jin (('10.2.2.222', 38672)): salut !
+Message de Vince (('10.2.2.223', 51056)): Salut !!
+Message de Vince (('10.2.2.223', 51056)): Comment tu vas ?
+Message de Jin (('10.2.2.222', 38672)): Bien et toi ?
+Déconnexion de ('10.2.2.222', 38672) (Jin)
+Connexion fermée avec ('10.2.2.222', 38672) (Jin)
+Déconnexion de ('10.2.2.223', 51056) (Vince)
+Connexion fermée avec ('10.2.2.223', 51056) (Vince)
 ^C
 Serveur arrêté manuellement.
 ```
