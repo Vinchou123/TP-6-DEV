@@ -12,7 +12,6 @@ async def send_message(writer):
         print("\nArrêt de la saisie utilisateur.")
 
 async def receive_message(reader):
-    try:
         while True:
             data = await reader.read(1024)
             if not data:
@@ -20,8 +19,7 @@ async def receive_message(reader):
                 break
             print(f"\r{data.decode()}\n", end="")
             print("\rVous : ", end="", flush=True)
-    except asyncio.CancelledError:
-        print("\nArrêt de la réception des messages.")
+    
 
 async def main():
     server_host = "10.2.2.2"
@@ -38,7 +36,7 @@ async def main():
         writer.write(f"Hello|{pseudo}".encode())
         await writer.drain()
 
-        print(f"Vous êtes connecté en tant que '{pseudo}'. Tapez vos messages !")
+        print(f"Vous êtes connecté en tant que '{pseudo}'. Tapez votre message !")
 
         send_task = asyncio.create_task(send_message(writer))
         receive_task = asyncio.create_task(receive_message(reader))
@@ -46,8 +44,6 @@ async def main():
         await asyncio.gather(send_task, receive_task)
     except ConnectionRefusedError:
         print(f"Impossible de se connecter au serveur {server_host}:{server_port}")
-    except KeyboardInterrupt:
-        print("\nArrêt du client (CTRL + C).")
     finally:
         print("Client arrêté manuellement.")
         try:
