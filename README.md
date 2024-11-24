@@ -352,3 +352,116 @@ Serveur arrêté manuellement.
 
 ## 6. Déconnexion
 
+🌞 chat_server_ii_6.py
+
+```bash
+[vince@ServeurTP6 TP-6-DEV]$ python chat_server_ii_6.py
+Serving on ('10.2.2.2', 8888)
+Nouvelle connexion de ('10.2.2.222', 60120)
+('10.2.2.222', 60120) s'est connecté avec le pseudo 'Vince'.
+Nouvelle connexion de ('10.2.2.223', 38712)
+('10.2.2.223', 38712) s'est connecté avec le pseudo 'Jin'.
+Message de Jin (('10.2.2.223', 38712)): slaut
+Message de Vince (('10.2.2.222', 60120)): Commen ttu vas ?
+^CConnexion annulée avec ('10.2.2.223', 38712)
+Déconnexion de ('10.2.2.223', 38712) (Jin)
+Connexion annulée avec ('10.2.2.222', 60120)
+Déconnexion de ('10.2.2.222', 60120) (Vince)
+
+Serveur arrêté manuellement.
+[vince@ServeurTP6 TP-6-DEV]$
+```
+
+🌞 chat_client_ii_6.py
+
+Lorsque le serveur se déco :
+
+```bash
+[vince@ClientTP6 TP-6-DEV]$ python3 chat_client_ii_6.py
+Connexion au serveur 10.2.2.2:8888...
+Entrez votre pseudo : Vince
+Vous êtes connecté en tant que 'Vince'. Tapez votre message !
+Annonce : Vince a rejoint la chatroom.
+
+Annonce : Jin a rejoint la chatroom.
+
+Jin a dit : slaut
+
+Vous : Commen ttu vas ?
+Annonce : Jin a quitté la chatroom.
+
+Vous :
+Connexion fermée par le serveur.
+
+Client arrêté manuellement.
+[vince@ClientTP6 TP-6-DEV]$
+```
+
+```bash
+[vince@Client2TP6 TP-6-DEV]$ python3 chat_client_ii_6.py
+Connexion au serveur 10.2.2.2:8888...
+Entrez votre pseudo : Jin
+Vous êtes connecté en tant que 'Jin'. Tapez votre message !
+Annonce : Jin a rejoint la chatroom.
+
+Vous : slaut
+Vince a dit : Commen ttu vas ?
+
+Vous :
+Connexion fermée par le serveur.
+
+Client arrêté manuellement.
+[vince@Client2TP6 TP-6-DEV]$
+```
+
+Lorsqu'un client se déco : 
+
+```bash
+[vince@ServeurTP6 TP-6-DEV]$ python chat_server_ii_6.py
+Serving on ('10.2.2.2', 8888)
+Nouvelle connexion de ('10.2.2.223', 39076)
+Nouvelle connexion de ('10.2.2.222', 49368)
+('10.2.2.222', 49368) s'est connecté avec le pseudo 'vince'.
+('10.2.2.223', 39076) s'est connecté avec le pseudo 'Jin'.
+Message de Jin (('10.2.2.223', 39076)): Salut
+Message de vince (('10.2.2.222', 49368)): COUCO
+Déconnexion de ('10.2.2.222', 49368) (vince)
+```
+
+```bash
+[vince@ClientTP6 TP-6-DEV]$ python3 chat_client_ii_6.py
+Connexion au serveur 10.2.2.2:8888...
+Entrez votre pseudo : vince
+Vous êtes connecté en tant que 'vince'. Tapez votre message !
+Annonce : vince a rejoint la chatroom.
+
+Annonce : Jin a rejoint la chatroom.
+
+Jin a dit : Salut
+
+Vous : COUCO
+Vous : ^C
+Client arrêté manuellement.
+
+Fermeture de la connexion.
+[vince@ClientTP6 TP-6-DEV]$
+```
+
+```bash
+[vince@Client2TP6 TP-6-DEV]$ python3 chat_client_ii_6.py
+Connexion au serveur 10.2.2.2:8888...
+Entrez votre pseudo : Jin
+Vous êtes connecté en tant que 'Jin'. Tapez votre message !
+Annonce : Jin a rejoint la chatroom.
+
+Vous : Salut
+vince a dit : COUCO
+
+Annonce : vince a quitté la chatroom.
+
+Vous :
+```
+
+# III. Bonus
+
+
