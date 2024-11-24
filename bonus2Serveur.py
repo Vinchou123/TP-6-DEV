@@ -1,91 +1,60 @@
 import asyncio
-from datetime import datetime
+import os
 
-CLIENTS = {}
-
-
-async def broadcast_message(message, exclude_addr=None):
-    """
-    Envoie un message à tous les clients connectés, sauf à 'exclude_addr' si spécifié.
-    """
-    for addr, client in CLIENTS.items():
-        if addr == exclude_addr or not client["connected"]:
-            continue
-        try:
-            client["writer"].write(message.encode())
-            await client["writer"].drain()
-        except Exception as e:
-            print(f"Erreur lors de l'envoi à {addr}: {e}")
-
-
-async def handle_client(reader, writer):
-    """
-    Gère la connexion d'un client : reconnexion, messages et déconnexion.
-    """
-    addr = writer.get_extra_info('peername')[0]
-    print(f"Nouvelle connexion de {addr}")
-
-    if addr in CLIENTS and CLIENTS[addr]["connected"] is False:
-        pseudo = CLIENTS[addr]["pseudo"]
-        CLIENTS[addr]["connected"] = True
-        CLIENTS[addr]["reader"] = reader
-        CLIENTS[addr]["writer"] = writer
-
-        writer.write(f"Welcome back, {pseudo}!\n".encode())
-        await writer.drain()
-        print(f"{addr} s'est reconnecté avec le pseudo '{pseudo}'.")
-        await broadcast_message(f"Annonce : {pseudo} est de retour !\n")
-    else:
-        writer.write(b"Entrez votre pseudo : ")
-        pseudo = (await reader.read(1024)).decode().strip()
-        if not pseudo:
-            writer.close()
-            await writer.wait_closed()
-            return
-
-        CLIENTS[addr] = {
-            "pseudo": pseudo,
-            "reader": reader,
-            "writer": writer,
-            "connected": True
-        }
-        print(f"{addr} s'est connecté avec le pseudo '{pseudo}'.")
-        await broadcast_message(f"Annonce : {pseudo} a rejoint la chatroom.\n")
-
-    try:
-        while True:
-            data = await reader.read(1024)
-            if not data:
-                break
-            message = data.decode().strip()
-            timestamp = datetime.now().strftime("[%H:%M]")
-            full_message = f"{timestamp} {pseudo} a dit : {message}\n"
-            await broadcast_message(full_message, exclude_addr=addr)
-    except Exception as e:
-        print(f"Erreur avec {addr}: {e}")
-    finally:
-        if addr in CLIENTS:
-            CLIENTS[addr]["connected"] = False
-            print(f"Déconnexion de {addr} ({pseudo})")
-            await broadcast_message(f"Annonce : {pseudo} a quitté la chatroom.\n")
-        writer.close()
-        await writer.wait_closed()
+PSEUDO_FILE = "/tmp/chat_pseudo.txt"
 
 
 async def main():
     """
-    Lance le serveur et attend les connexions des clients.
+    Client de chat qui se connecte au serveur et permet d'envoyer des messages.
     """
-    server = await asyncio.start_server(handle_client, "10.2.2.2", 8888)
-    addr = server.sockets[0].getsockname()
-    print(f"Serving on {addr}")
+    server_ip = "10.2.2.2"
+    server_port = 8888
 
-    async with server:
-        await server.serve_forever()
+    try:
+        reader, writer = await asyncio.open_connection(server_ip, server_port)
+        print(f"Connexion au serveur {server_ip}:{server_port}...")
+
+        if os.path.exists(PSEUDO_FILE):
+            with open(PSEUDO_FILE, "r") as f:
+                pseudo = f.read().strip()
+        else:
+            pseudo = input("Entrez votre pseudo : ").strip()
+            with open(PSEUDO_FILE, "w") as f:
+                f.write(pseudo)
+
+        writer.write(f"{pseudo}\n".encode())
+        await writer.drain()
+        print(f"Vous êtes connecté en tant que '{pseudo}'. Tapez votre message !")
+
+        async def send_messages():
+            while True:
+                message = input("Vous : ").strip()
+                if message.lower() == "exit":
+                    print("Déconnexion...")
+                    break
+                writer.write(f"{message}\n".encode())
+                await writer.drain()
+
+        async def read_messages():
+            while True:
+                data = await reader.read(1024)
+                if not data:
+                    break
+                print(data.decode(), end="")
+
+        await asyncio.gather(send_messages(), read_messages())
+
+    except ConnectionRefusedError:
+        print("Connexion refusée. Vérifiez que le serveur est actif.")
+    except KeyboardInterrupt:
+        print("\nDéconnexion...")
+    finally:
+        if writer:
+            writer.close()
+            await writer.wait_closed()
+        print("Client arrêté.")
 
 
 if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        print("\nServeur arrêté.")
+    asyncio.run(main())
