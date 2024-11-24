@@ -25,9 +25,6 @@ async def receive_messages(reader):
             print("\rVous : ", end="", flush=True)
     except asyncio.CancelledError:
         print("\nArrêt de la réception des messages.")
-    except ConnectionResetError:
-        print("Erreur de connexion : Le serveur a été déconnecté.")
-        return
     except Exception as e:
         print(f"Erreur de réception des messages : {e}")
         return
