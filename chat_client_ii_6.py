@@ -12,7 +12,7 @@ async def send_messages(writer):
                 writer.write(message.encode())
                 await writer.drain()
     except (asyncio.CancelledError, ConnectionResetError) as e:
-        print("\nErreur de connexion ou arrêt de la saisie utilisateur :", e)
+        print("\nClient arrêté manuellement. :", e)
 
 async def receive_messages(reader):
     try:
@@ -60,7 +60,7 @@ async def main():
         receive_task.cancel()
         await send_task
         await receive_task
-        print("\nArrêt de la réception des messages.")
+        
 
     print("Client arrêté manuellement.")
     
