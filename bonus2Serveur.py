@@ -1,60 +1,67 @@
 import asyncio
-import os
 
-PSEUDO_FILE = "/tmp/chat_pseudo.txt"
+CLIENTS = {}
 
+async def handle_client(reader, writer):
+    addr = writer.get_extra_info('peername')
+    print(f"Nouvelle connexion de {addr[0]}:{addr[1]}")
 
-async def main():
-    """
-    Client de chat qui se connecte au serveur et permet d'envoyer des messages.
-    """
-    server_ip = "10.2.2.2"
-    server_port = 8888
+    pseudo = (await reader.readline()).decode().strip()
+    
+    if pseudo in CLIENTS:
+        CLIENTS[pseudo]["connected"] = True
+        CLIENTS[pseudo]["writer"] = writer 
+        print(f"{addr[0]} s'est reconnecté avec le pseudo '{pseudo}'.")
+        broadcast(f"Annonce : {pseudo} est de retour !", pseudo)
+    else:
+        CLIENTS[pseudo] = {
+            "addr": addr,
+            "writer": writer,
+            "connected": True,
+        }
+        print(f"{addr[0]} s'est connecté avec le pseudo '{pseudo}'.")
+        broadcast(f"Annonce : {pseudo} a rejoint la chatroom.", pseudo)
 
     try:
-        reader, writer = await asyncio.open_connection(server_ip, server_port)
-        print(f"Connexion au serveur {server_ip}:{server_port}...")
-
-        if os.path.exists(PSEUDO_FILE):
-            with open(PSEUDO_FILE, "r") as f:
-                pseudo = f.read().strip()
-        else:
-            pseudo = input("Entrez votre pseudo : ").strip()
-            with open(PSEUDO_FILE, "w") as f:
-                f.write(pseudo)
-
-        writer.write(f"{pseudo}\n".encode())
-        await writer.drain()
-        print(f"Vous êtes connecté en tant que '{pseudo}'. Tapez votre message !")
-
-        async def send_messages():
-            while True:
-                message = input("Vous : ").strip()
-                if message.lower() == "exit":
-                    print("Déconnexion...")
-                    break
-                writer.write(f"{message}\n".encode())
-                await writer.drain()
-
-        async def read_messages():
-            while True:
-                data = await reader.read(1024)
-                if not data:
-                    break
-                print(data.decode(), end="")
-
-        await asyncio.gather(send_messages(), read_messages())
-
-    except ConnectionRefusedError:
-        print("Connexion refusée. Vérifiez que le serveur est actif.")
-    except KeyboardInterrupt:
-        print("\nDéconnexion...")
+        while True:
+            data = await reader.readline()
+            if not data:
+                break
+            message = data.decode().strip()
+            print(f"Message de {pseudo} ({addr[0]}): {message}")
+            broadcast(f"[{addr[0]}] {pseudo} a dit : {message}", pseudo)
+    except asyncio.CancelledError:
+        pass
     finally:
-        if writer:
-            writer.close()
-            await writer.wait_closed()
-        print("Client arrêté.")
+        print(f"Déconnexion de {addr[0]} ({pseudo})")
+        CLIENTS[pseudo]["connected"] = False
+        broadcast(f"Annonce : {pseudo} a quitté la chatroom.", pseudo)
+        writer.close()
+        await writer.wait_closed()
 
+def broadcast(message, sender_pseudo=None):
+    """
+    Envoie un message à tous les clients connectés sauf à l'expéditeur (si défini).
+    """
+    for pseudo, info in CLIENTS.items():
+        if info["connected"] and pseudo != sender_pseudo:
+            try:
+                info["writer"].write(f"{message}\n".encode())
+            except Exception as e:
+                print(f"Erreur lors de l'envoi à {pseudo}: {e}")
+
+async def main():
+    server_ip = "10.2.2.2"
+    server_port = 8888
+    server = await asyncio.start_server(handle_client, server_ip, server_port)
+    addr = server.sockets[0].getsockname()
+    print(f"Serving on {addr}")
+
+    async with server:
+        await server.serve_forever()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\nServeur arrêté.")
