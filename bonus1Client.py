@@ -17,10 +17,13 @@ async def receive_message(reader, stop_event):
             stop_event.set()
             break
 
-        pseudo, color, timestamp, msg = data.decode().strip().split("|")
-        timestamp = datetime.fromtimestamp(float(timestamp)).strftime("[%H:%M]")
-
-        print(f"\r{timestamp} \033[38;5;{color}m{pseudo}\033[0m a dit : {msg}\n", end="")
+        try:
+            pseudo, color, timestamp, msg = data.decode().strip().split("|")
+            timestamp = datetime.fromtimestamp(float(timestamp)).strftime("[%H:%M]")
+            print(f"\r{timestamp} \033[38;5;{color}m{pseudo}\033[0m a dit : {msg}\n", end="")
+        except ValueError:
+            print("Erreur de format dans le message reçu.")
+        
         print("\rVous : ", end="", flush=True)
 
 async def main():

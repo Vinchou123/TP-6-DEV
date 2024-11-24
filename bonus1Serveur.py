@@ -1,21 +1,24 @@
 import asyncio
 import random
+from datetime import datetime
 
-# Dictionnaire pour gérer les clients
 CLIENTS = {}
 
-def generate_random_color():
-    # Génère une couleur aléatoire au format hexadécimal
+def generate_color():
     return "#{:02x}{:02x}{:02x}".format(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
 async def broadcast_message(sender_addr, message, include_sender=False):
-    # Diffuse le message à tous les clients connectés
     for addr, client in CLIENTS.items():
         if not include_sender and addr == sender_addr:
             continue
         writer = client["w"]
+        pseudo = client["pseudo"]
+        color = client["color"]
+        timestamp = client["timestamp"]
+
+        final_message = f"{pseudo}|{color}|{timestamp}|{message}"
         try:
-            writer.write(message.encode())
+            writer.write(final_message.encode())
             await writer.drain()
         except Exception as e:
             print(f"Erreur lors de l'envoi à {addr}: {e}")
@@ -43,14 +46,14 @@ async def handle_client(reader, writer):
             await writer.wait_closed()
             return
 
-        # Génération d'une couleur aléatoire pour le client
-        color = generate_random_color()
+        color = generate_color()
 
         CLIENTS[addr] = {
             "r": reader,
             "w": writer,
             "pseudo": pseudo,
-            "color": color,  # Ajout de la couleur
+            "color": color,
+            "timestamp": datetime.now().timestamp()
         }
         print(f"{addr} s'est connecté avec le pseudo '{pseudo}' et la couleur '{color}'.")
 
@@ -65,9 +68,10 @@ async def handle_client(reader, writer):
             msg = data.decode().strip()
             print(f"Message de {pseudo} ({addr}): {msg}")
 
-            # Envoie du message avec la couleur du client et l'heure actuelle
-            timestamp = asyncio.get_event_loop().time()
-            redistrib_message = f"{pseudo}|{CLIENTS[addr]['color']}|{timestamp}|{msg}\n"
+            timestamp = datetime.now().timestamp()
+            CLIENTS[addr]["timestamp"] = timestamp
+
+            redistrib_message = f"{pseudo} a dit : {msg}\n"
             await broadcast_message(sender_addr=addr, message=redistrib_message)
 
     except asyncio.CancelledError:
@@ -86,7 +90,6 @@ async def handle_client(reader, writer):
         await writer.wait_closed()
 
 async def main():
-    global CLIENTS
     server_host = "10.2.2.2"
     server_port = 8888
 
