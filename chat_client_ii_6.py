@@ -13,6 +13,7 @@ async def receive_message(reader):
         data = await reader.read(1024)
         if not data:
             print("\nConnexion fermée par le serveur.")
+            asyncio.get_event_loop().stop()
             break
         print(f"\r{data.decode()}\n", end="")
         print("\rVous : ", end="", flush=True)
