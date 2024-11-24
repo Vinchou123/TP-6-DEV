@@ -2,14 +2,12 @@ import asyncio
 from aioconsole import ainput
 
 async def send_message(writer):
-    try:
         while True:
             message = await ainput("\rVous : ")
             if message.strip():
                 writer.write(message.encode())
                 await writer.drain()
-    except asyncio.CancelledError:
-        print("\nArrêt de la saisie utilisateur.")
+    
 
 async def receive_message(reader):
         while True:
