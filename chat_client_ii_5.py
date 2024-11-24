@@ -2,16 +2,17 @@ import asyncio
 from aioconsole import ainput
 
 async def send_message(writer):
-    
+    try:
         while True:
             message = await ainput("\rVous : ")
             if message.strip():
                 writer.write(message.encode())
                 await writer.drain()
-    
+    except asyncio.CancelledError:
+        print("\nArrêt de la saisie utilisateur.")
 
 async def receive_message(reader):
-    
+    try:
         while True:
             data = await reader.read(1024)
             if not data:
@@ -19,7 +20,8 @@ async def receive_message(reader):
                 break
             print(f"\r{data.decode()}\n", end="")
             print("\rVous : ", end="", flush=True)
-    
+    except asyncio.CancelledError:
+        print("\nArrêt de la réception des messages.")
 
 async def main():
     server_host = "10.2.2.2"
@@ -47,7 +49,7 @@ async def main():
     except KeyboardInterrupt:
         print("\nArrêt du client (CTRL + C).")
     finally:
-        print("Fermeture de la connexion.")
+        print("Client arrêté manuellement.")
         try:
             writer.close()
             await writer.wait_closed()
@@ -58,7 +60,4 @@ if __name__ == '__main__':
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        print("\nClient arrêté manuellement.")
-
-    
-        
+        print("\nFermeture de la connexion.")
