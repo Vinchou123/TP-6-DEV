@@ -22,6 +22,9 @@ async def receive_messages(reader):
             print("\rVous : ", end="", flush=True)
     except asyncio.CancelledError:
         print("\nArrêt de la réception des messages.")
+    except Exception as e:
+        print(f"Erreur de réception des messages : {e}")
+        return
 
 async def main():
     server_host = "10.2.2.2"
@@ -30,7 +33,7 @@ async def main():
     print(f"Connexion au serveur {server_host}:{server_port}...")
     try:
         reader, writer = await asyncio.open_connection(server_host, server_port)
-    except Exception as e:
+    except (ConnectionRefusedError, asyncio.TimeoutError) as e:
         print(f"Impossible de se connecter au serveur : {e}")
         return
 
@@ -47,15 +50,18 @@ async def main():
 
     try:
         await asyncio.gather(send_task, receive_task)
+    except asyncio.CancelledError:
+        pass
+    finally:
         send_task.cancel()
         receive_task.cancel()
         await send_task
         await receive_task
         print("\nArrêt de la réception des messages.")
-    finally:
-        print("Client arrêté manuellement.")
-        writer.close()
-        await writer.wait_closed()
+
+    print("Client arrêté manuellement.")
+    writer.close()
+    await writer.wait_closed()
 
 if __name__ == '__main__':
     try:
