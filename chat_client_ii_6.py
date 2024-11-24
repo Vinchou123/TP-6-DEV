@@ -56,7 +56,6 @@ async def main():
         print("Client arrêté manuellement.")
         writer.close()
         await writer.wait_closed()
-        print("Fermeture de la connexion.")
 
 if __name__ == '__main__':
     try:
