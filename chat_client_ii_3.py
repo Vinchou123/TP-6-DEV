@@ -1,16 +1,14 @@
 import asyncio
 from aioconsole import ainput
 
-
-
 async def async_input(writer):
     try:
         while True:
-            user_input = await ainput("Vous : ")
+            user_input = await ainput("\rVous : ")
             if user_input.strip():
                 writer.write(user_input.encode())
                 await writer.drain()
-    except asyncio.CancelledEarror:
+    except asyncio.CancelledError:
         print("Arrêt de la saisie utilisateur.")
 
 async def async_receive(reader):
@@ -18,9 +16,9 @@ async def async_receive(reader):
         while True:
             data = await reader.read(1024)
             if not data:
-                print("Connexion avec le serveur fermée.")
+                print("\nConnexion avec le serveur fermée.")
                 break
-            print(f"\nServeur : {data.decode()}")
+            print(f"\nServeur : {data.decode()}", end="\n")
     except asyncio.CancelledError:
         print("Arrêt de la réception des messages.")
 
@@ -44,8 +42,9 @@ async def main():
         print("\nClient arrêté par l'utilisateur.")
     finally:
         print("Fermeture de la connexion.")
-        writer.close()
-        await writer.wait_closed()
+        if writer:
+            writer.close()
+            await writer.wait_closed()
 
 if __name__ == "__main__":
     try:
