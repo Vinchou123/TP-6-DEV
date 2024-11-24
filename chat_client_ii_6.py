@@ -12,7 +12,7 @@ async def send_messages(writer):
                 writer.write(message.encode())
                 await writer.drain()
     except (asyncio.CancelledError, ConnectionResetError) as e:
-        print("\nClient arrêté manuellement. :", e)
+        print("\nClient arrêté manuellement.", e)
 
 async def receive_messages(reader):
     try:
@@ -23,8 +23,6 @@ async def receive_messages(reader):
                 return
             print(f"\r{data.decode()}\n", end="")
             print("\rVous : ", end="", flush=True)
-    except asyncio.CancelledError:
-        print("\nArrêt de la réception des messages.")
     except Exception as e:
         print(f"Erreur de réception des messages : {e}")
         return
@@ -62,7 +60,6 @@ async def main():
         await receive_task
         
 
-    print("Client arrêté manuellement.")
     
     if not writer.is_closing():
         writer.close()
